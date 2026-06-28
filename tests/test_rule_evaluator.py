@@ -68,6 +68,20 @@ def test_token_count_lt():
     assert _check("token_count_lt", "100", run).passed is False
 
 
+def test_subagent_count_lte_from_snapshot():
+    run = _run(snapshot={"subagent_count": 3})
+    assert _check("subagent_count_lte", "3", run).passed is True
+    run2 = _run(snapshot={"subagent_count": 4})
+    assert _check("subagent_count_lte", "3", run2).passed is False
+
+
+def test_subagent_count_lte_falls_back_to_delegate_calls():
+    run = _run(tool_calls=[ToolCallRecord(tool="delegate_task"),
+                           ToolCallRecord(tool="delegate_task")])
+    assert _check("subagent_count_lte", "3", run).passed is True
+    assert _check("subagent_count_lte", "1", run).passed is False
+
+
 def test_evaluate_aggregates_to_dimension_score():
     expected = [
         ExpectedOutput(type="contains", value="httpx"),

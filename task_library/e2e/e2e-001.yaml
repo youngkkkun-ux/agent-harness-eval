@@ -1,0 +1,23 @@
+task_id: e2e-001
+name: 端到端：完整开发任务覆盖全部五层
+harness_layer: all
+category: e2e
+difficulty: hard
+prompt: |
+  按我之前说过的代码风格，写一个带缓存的 HTTP 客户端封装并补上测试。
+expected_outputs:
+  - type: contains
+    value: "def "
+acceptance_criteria:
+  - "应用既有偏好/Skill（L1）"
+  - "遵守权限与沙箱边界（L2）"
+  - "利用记忆中的上下文（L4）"
+  - "必要时分解/编排子任务（L5）"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+  - name: harness_utilization
+    weight: 2.0
+    threshold: 6.0
+tags: [e2e, all_layers]

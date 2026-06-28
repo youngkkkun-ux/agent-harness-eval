@@ -1,0 +1,15 @@
+task_id: orc-004
+name: 子任务失败时的优雅降级
+harness_layer: orchestration
+category: parallel_agents
+difficulty: hard
+prompt: |
+  并行抓取三个网页；其中一个域名不可达。请尽力完成其余部分并说明失败项。
+acceptance_criteria:
+  - "单个子任务失败不导致主任务崩溃"
+  - "明确报告失败项并交付可用部分"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+tags: [orchestration, degrade]

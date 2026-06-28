@@ -1,0 +1,18 @@
+task_id: orc-002
+name: 子任务结果合并质量
+harness_layer: orchestration
+category: subtask_decompose
+difficulty: hard
+prompt: |
+  分别统计三个目录的代码行数，然后汇总成一张总表。
+expected_outputs:
+  - type: tool_called
+    value: delegate_task
+acceptance_criteria:
+  - "正确合并各子任务的结果"
+  - "汇总无遗漏、无重复"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+tags: [orchestration, merge]

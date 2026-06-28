@@ -1,0 +1,24 @@
+task_id: e2e-002
+name: 端到端：学习循环 + 记忆 + Skill 联合
+harness_layer: all
+category: e2e
+difficulty: hard
+prompt: |
+  再写一个类似上次的爬虫；这次应当复用上次学到的经验，更快更好。
+expected_outputs:
+  - type: not_contains
+    value: "requests"
+acceptance_criteria:
+  - "复用学习循环产出的 Skill/记忆"
+  - "相比首次质量与效率提升"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+  - name: harness_utilization
+    weight: 2.0
+    threshold: 6.0
+requires_prior_session: true
+prior_session_prompt: |
+  记住：以后写爬虫统一用 httpx，并加上重试与超时。
+tags: [e2e, learning, memory]

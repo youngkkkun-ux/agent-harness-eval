@@ -62,6 +62,12 @@ class RuleEvaluator:
         if t == "token_count_lt":
             total = run.input_tokens + run.output_tokens
             return total < int(v)
+        if t == "subagent_count_lte":
+            # orchestration fan-out: prefer snapshot count, else count delegate_task calls
+            count = snap.get("subagent_count")
+            if count is None:
+                count = sum(1 for tc in run.tool_calls if tc.tool == "delegate_task")
+            return count <= int(v)
         raise ValueError(f"unknown rule type: {t}")  # pragma: no cover
 
     def evaluate(

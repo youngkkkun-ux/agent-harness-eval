@@ -117,4 +117,10 @@ hermes-eval compare --field skill_enabled --layer instructions --db eval.db
 
 - **Phase 1（已实现）**：Task Library / Runner / Rule+LLM Evaluator / SQLite Store / 报告，覆盖 L1·L2·L4。
 - **Phase 2（已实现）**：真实 `~/.hermes/` 状态读取（`HermesStateReader`）、Anthropic LLM-as-Judge、学习曲线追踪、A/B 对比报告、L3 反馈层任务、GitHub Actions CI。
-- **Phase 3**：L5 编排任务、e2e 任务、CI 定时运行、开源发布。
+- **Phase 3（已实现）**：L5 编排任务（含 `subagent_count_lte` 子 Agent 上限检查）、e2e 任务、定时评测工作流（`.github/workflows/scheduled-eval.yml`）、开源发布（LICENSE + 示例报告）。
+
+任务库现覆盖全部五层 + e2e，共 14 个任务。
+
+## License
+
+[MIT](LICENSE)。

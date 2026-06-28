@@ -33,6 +33,7 @@ ExpectedOutputType = Literal[
     "skill_created",
     "memory_written",
     "token_count_lt",
+    "subagent_count_lte",  # orchestration: sub-agent fan-out limit (PRD 6.4)
 ]
 
 
