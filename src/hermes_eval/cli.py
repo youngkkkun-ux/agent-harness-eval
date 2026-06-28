@@ -58,7 +58,13 @@ def cmd_list(args) -> int:
 
 def _make_pipeline(args) -> EvaluationPipeline:
     driver = DemoDriver() if args.demo else SubprocessDriver(binary=args.binary)
-    return EvaluationPipeline(runner=Runner(driver), judge=None)
+    judge = None
+    if getattr(args, "judge_model", None):
+        # LLM-as-Judge via Anthropic (needs ANTHROPIC_API_KEY in the environment).
+        from .judge_clients import AnthropicJudgeClient
+
+        judge = AnthropicJudgeClient(model=args.judge_model)
+    return EvaluationPipeline(runner=Runner(driver), judge=judge)
 
 
 def cmd_run(args) -> int:
@@ -122,6 +128,8 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("--config-name", default="default")
     pr.add_argument("--binary", default="hermes")
     pr.add_argument("--demo", action="store_true", help="使用内置 DemoDriver")
+    pr.add_argument("--judge-model", default=None,
+                    help="启用 LLM-as-Judge 的模型（如 claude-haiku-4-5，需 ANTHROPIC_API_KEY）")
     pr.set_defaults(func=cmd_run)
 
     prep = sub.add_parser("report", help="生成 Harness 汇总报告")
