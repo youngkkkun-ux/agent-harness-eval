@@ -113,6 +113,37 @@ hermes-eval compare --field skill_enabled --layer instructions --db eval.db
 的 `memory.md` / `user.md` / `skills/` / `sessions.db`，供 StateEvaluator 与
 `memory_written` / `skill_created` 等规则使用（PRD 方式 C 灰盒验证）。
 
+## 接入真实 Hermes
+
+`SubprocessDriver` 按下面这个 **CLI 契约**驱动被测 Hermes（CLI 子进程 + 灰盒状态）：
+
+| 约定 | 内容 |
+|------|------|
+| 健康检查 | `hermes --version` 返回 exit 0 |
+| 运行 | `hermes --session <id> --model <model> --prompt <text>`（可加 `--extra-args`） |
+| 回应 | **stdout** 即模型回应正文 |
+| 工具调用 | 日志行 `tool: <name> input: <...>`（stdout 或 stderr） |
+| Token 用量 | 日志行含 `input_tokens=<n>` 与 `output_tokens=<n>`（如 `usage: input_tokens=42 output_tokens=17`） |
+| 状态 | 进程通过环境变量 `HERMES_HOME` 指向状态目录，写入 `memory.md`/`user.md`/`skills/`/`sessions.db` |
+
+接入方式：
+
+```bash
+export ANTHROPIC_API_KEY=sk-...   # 仅启用 LLM-as-Judge 时需要
+pip install -e ".[judge]"          # 安装 anthropic SDK（可选）
+
+hermes-eval run \
+  --tasks task_library \
+  --binary /path/to/hermes \
+  --hermes-home ~/.hermes \
+  --judge-model claude-haiku-4-5 \
+  --db eval.db
+```
+
+若你的 Hermes 输出/参数与上面不同，改 `SubprocessDriver._parse_tool_calls` /
+`_parse_usage` 或传 `extra_args` 即可适配——`tests/test_subprocess_integration.py`
+用一个遵循该契约的桩 `hermes` 做了真实子进程端到端验证，可作为参照。
+
 ## 路线图
 
 - **Phase 1（已实现）**：Task Library / Runner / Rule+LLM Evaluator / SQLite Store / 报告，覆盖 L1·L2·L4。

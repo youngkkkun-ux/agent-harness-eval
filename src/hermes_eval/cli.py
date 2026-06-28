@@ -58,7 +58,9 @@ def cmd_list(args) -> int:
 
 
 def _make_pipeline(args) -> EvaluationPipeline:
-    driver = DemoDriver() if args.demo else SubprocessDriver(binary=args.binary)
+    driver = (DemoDriver() if args.demo
+              else SubprocessDriver(binary=args.binary,
+                                    hermes_home=getattr(args, "hermes_home", None)))
     judge = None
     if getattr(args, "judge_model", None):
         # LLM-as-Judge via Anthropic (needs ANTHROPIC_API_KEY in the environment).
@@ -172,6 +174,7 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("--model", default="claude-opus-4-6")
     pr.add_argument("--config-name", default="default")
     pr.add_argument("--binary", default="hermes")
+    pr.add_argument("--hermes-home", default=None, help="被测 Hermes 的 HOME（灰盒状态读取）")
     pr.add_argument("--demo", action="store_true", help="使用内置 DemoDriver")
     pr.add_argument("--judge-model", default=None,
                     help="启用 LLM-as-Judge 的模型（如 claude-haiku-4-5，需 ANTHROPIC_API_KEY）")
@@ -191,6 +194,7 @@ def build_parser() -> argparse.ArgumentParser:
     pln.add_argument("--model", default="claude-opus-4-6")
     pln.add_argument("--config-name", default="learning")
     pln.add_argument("--binary", default="hermes")
+    pln.add_argument("--hermes-home", default=None)
     pln.add_argument("--demo", action="store_true")
     pln.add_argument("--judge-model", default=None)
     pln.set_defaults(func=cmd_learn)
@@ -204,6 +208,7 @@ def build_parser() -> argparse.ArgumentParser:
     pc.add_argument("--db", default="hermes_eval.db")
     pc.add_argument("--model", default="claude-opus-4-6")
     pc.add_argument("--binary", default="hermes")
+    pc.add_argument("--hermes-home", default=None)
     pc.add_argument("--demo", action="store_true")
     pc.add_argument("--judge-model", default=None)
     pc.set_defaults(func=cmd_compare)
