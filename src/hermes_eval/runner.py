@@ -7,7 +7,8 @@ testable with a FakeDriver. `SubprocessDriver` is the production implementation
 """
 from __future__ import annotations
 
-import shlex
+import os
+import re
 import subprocess
 import uuid
 from dataclasses import dataclass, field
@@ -110,16 +111,23 @@ class SubprocessDriver:
     """
 
     def __init__(self, binary: str = "hermes", hermes_home: str | None = None,
-                 timeout: float = 300.0):
+                 timeout: float = 300.0, extra_args: list[str] | None = None):
         self.binary = binary
         self.hermes_home = hermes_home
         self.timeout = timeout
+        self.extra_args = extra_args or []
+
+    def _env(self) -> dict:
+        env = dict(os.environ)
+        if self.hermes_home:
+            env["HERMES_HOME"] = str(self.hermes_home)
+        return env
 
     def health_check(self) -> bool:
         try:
             proc = subprocess.run(
                 [self.binary, "--version"],
-                capture_output=True, text=True, timeout=15,
+                capture_output=True, text=True, timeout=15, env=self._env(),
             )
             return proc.returncode == 0
         except (OSError, subprocess.SubprocessError):
@@ -127,17 +135,21 @@ class SubprocessDriver:
 
     def run(self, prompt: str, config: RunConfig, session_id: str) -> DriverResult:
         cmd = [self.binary, "--session", session_id, "--model", config.model,
-               "--prompt", prompt]
+               "--prompt", prompt, *self.extra_args]
         try:
             proc = subprocess.run(
                 cmd, capture_output=True, text=True, timeout=self.timeout,
+                env=self._env(),
             )
         except subprocess.TimeoutExpired as exc:
             raise TimeoutError(str(exc)) from exc
-        log = (proc.stdout or "") + (proc.stderr or "")
+        log = (proc.stdout or "") + "\n" + (proc.stderr or "")
+        in_tok, out_tok = self._parse_usage(log)
         return DriverResult(
             response=proc.stdout or "",
             tool_calls=self._parse_tool_calls(log),
+            input_tokens=in_tok,
+            output_tokens=out_tok,
             raw_log=log,
         )
 
@@ -152,6 +164,14 @@ class SubprocessDriver:
                 name, _, inp = rest.partition("input:")
                 calls.append(ToolCallRecord(tool=name.strip(), input=inp.strip()))
         return calls
+
+    @staticmethod
+    def _parse_usage(log: str) -> tuple[int, int]:
+        # Contract: a log line like "usage: input_tokens=42 output_tokens=17".
+        in_m = re.search(r"input_tokens[=:]\s*(\d+)", log)
+        out_m = re.search(r"output_tokens[=:]\s*(\d+)", log)
+        return (int(in_m.group(1)) if in_m else 0,
+                int(out_m.group(1)) if out_m else 0)
 
     def snapshot_state(self, session_id: str) -> dict:
         # Gray-box read of ~/.hermes/ state (PRD method C).
