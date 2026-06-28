@@ -5,6 +5,7 @@ the ResultStore, returning data ready for ReportGenerator.
 """
 from __future__ import annotations
 
+from .metrics import variance_stats
 from .models import EvalResult, RunConfig, Task
 from .pipeline import EvaluationPipeline
 from .store import ResultStore
@@ -34,6 +35,37 @@ def run_learning_curve(
         )
         curve.append({"run_number": n, "run_id": run.run_id, "score": score})
     return curve
+
+
+def run_consistency(
+    pipeline: EvaluationPipeline,
+    store: ResultStore,
+    task: Task,
+    config: RunConfig,
+    *,
+    repeats: int,
+    config_id: str,
+) -> dict:
+    """Run `task` `repeats` times and measure score stability (PRD 3.2).
+
+    Errored runs are excluded from the variance computation but counted.
+    Returns: {n, errored, scores, mean, std, consistency}.
+    """
+    scores: list[float] = []
+    errored = 0
+    for _ in range(repeats):
+        run, result = pipeline.evaluate(task, config)
+        store.save_run(run, config_id=config_id)
+        store.save_result(result)
+        if run.error:
+            errored += 1
+        else:
+            scores.append(result.overall_score)
+    summary = variance_stats(scores)
+    summary["scores"] = scores
+    summary["errored"] = errored
+    summary["task_id"] = task.task_id
+    return summary
 
 
 def run_comparison(

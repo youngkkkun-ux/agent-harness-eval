@@ -130,6 +130,28 @@ class ReportGenerator:
             f"| 通过率 | {_pct(a_pr)} | {_pct(b_pr)} | {a_pr - b_pr:+.0f}pp |",
         ])
 
+    # ---------- consistency ----------
+
+    def consistency_report(self, summary: dict) -> str:
+        task_id = summary.get("task_id", "?")
+        if not summary.get("n"):
+            return (f"## 一致性：{task_id}\n"
+                    f"无有效运行（errored={summary.get('errored', 0)}）。")
+        scores = " / ".join(f"{s:.1f}" for s in summary["scores"])
+        cons = summary["consistency"]
+        verdict = "✓ 稳定" if cons is not None and cons >= 7 else "⚠️ 波动较大"
+        lines = [
+            f"## 一致性：{task_id}",
+            f"运行 {summary['n']} 次（errored {summary.get('errored', 0)}）：{scores}",
+            "",
+            "| 指标 | 值 |",
+            "|------|----|",
+            f"| 平均分 | {summary['mean']:.2f} |",
+            f"| 标准差 | {summary['std']:.3f} |",
+            f"| 一致性 | {'N/A' if cons is None else f'{cons:.2f}'} / 10  {verdict} |",
+        ]
+        return "\n".join(lines)
+
     # ---------- json ----------
 
     def json_export(self, results: list[EvalResult]) -> list[dict]:

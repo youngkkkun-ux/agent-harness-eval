@@ -14,7 +14,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .experiments import run_comparison, run_learning_curve
+from .experiments import run_comparison, run_consistency, run_learning_curve
 from .models import RunConfig
 from .pipeline import EvaluationPipeline
 from .report import ReportGenerator
@@ -136,6 +136,27 @@ def cmd_learn(args) -> int:
     return 0
 
 
+def cmd_consistency(args) -> int:
+    try:
+        lib = _load_library(args.tasks)
+    except EmptyLibraryError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    task = lib.get(args.task)
+    if task is None:
+        print(f"未找到任务：{args.task}", file=sys.stderr)
+        return 2
+
+    store = ResultStore(args.db)
+    config = RunConfig(model=args.model)
+    config_id = store.save_config(args.config_name, config)
+    summary = run_consistency(_make_pipeline(args), store, task, config,
+                              repeats=args.repeats, config_id=config_id)
+    store.close()
+    print(ReportGenerator().consistency_report(summary))
+    return 0
+
+
 def cmd_compare(args) -> int:
     try:
         lib = _load_library(args.tasks)
@@ -198,6 +219,19 @@ def build_parser() -> argparse.ArgumentParser:
     pln.add_argument("--demo", action="store_true")
     pln.add_argument("--judge-model", default=None)
     pln.set_defaults(func=cmd_learn)
+
+    pcon = sub.add_parser("consistency", help="一致性：同一任务跑 N 次看方差")
+    pcon.add_argument("--task", required=True)
+    pcon.add_argument("--repeats", type=int, default=5)
+    pcon.add_argument("--tasks", default="task_library")
+    pcon.add_argument("--db", default="hermes_eval.db")
+    pcon.add_argument("--model", default="claude-opus-4-6")
+    pcon.add_argument("--config-name", default="consistency")
+    pcon.add_argument("--binary", default="hermes")
+    pcon.add_argument("--hermes-home", default=None)
+    pcon.add_argument("--demo", action="store_true")
+    pcon.add_argument("--judge-model", default=None)
+    pcon.set_defaults(func=cmd_consistency)
 
     pc = sub.add_parser("compare", help="A/B 对比（如有/无某 Harness 层）")
     pc.add_argument("--field", default="skill_enabled",

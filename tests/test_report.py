@@ -88,6 +88,25 @@ def test_comparison_report():
     assert "6.3" in md
 
 
+def test_consistency_report():
+    summary = {"task_id": "mem-001", "n": 4, "errored": 1,
+               "scores": [10.0, 8.0, 9.0, 10.0], "mean": 9.25,
+               "std": 0.829, "consistency": 8.34}
+    md = ReportGenerator().consistency_report(summary)
+    assert "mem-001" in md
+    assert "8.34" in md       # consistency value
+    assert "9.25" in md       # mean
+    assert "4" in md          # run count
+
+
+def test_consistency_report_handles_no_valid_runs():
+    summary = {"task_id": "x", "n": 0, "errored": 3, "scores": [],
+               "mean": None, "std": None, "consistency": None}
+    md = ReportGenerator().consistency_report(summary)
+    assert "x" in md
+    assert "无有效" in md or "N/A" in md
+
+
 def test_json_export_roundtrip():
     payload = ReportGenerator().json_export([_result()])
     assert payload[0]["task_id"] == "mem-001"
