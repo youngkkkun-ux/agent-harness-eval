@@ -49,6 +49,8 @@ def test_cmd_learn(capsys, tmp_path):
     assert rc == 0
     assert "学习曲线" in out
     assert "Run3" in out
+    assert "学习循环专项指标" in out          # PRD 3.3 metrics block
+    assert "skill_creation_rate" in out
 
 
 def test_cmd_consistency(capsys, tmp_path):

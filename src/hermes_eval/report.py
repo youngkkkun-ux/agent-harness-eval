@@ -130,6 +130,22 @@ class ReportGenerator:
             f"| 通过率 | {_pct(a_pr)} | {_pct(b_pr)} | {a_pr - b_pr:+.0f}pp |",
         ])
 
+    # ---------- learning-loop metrics (PRD 3.3) ----------
+
+    def learning_loop_report(self, metrics: dict) -> str:
+        labels = {
+            "improvement_rate": ("提升率 (improvement_rate)", "%"),
+            "error_recurrence_rate": ("错误复现率 (error_recurrence_rate)", ""),
+            "skill_creation_rate": ("Skill 创建率 (skill_creation_rate)", ""),
+            "skill_hit_rate": ("Skill 召回率 (skill_hit_rate)", ""),
+        }
+        lines = ["## 学习循环专项指标", "", "| 指标 | 值 |", "|------|----|"]
+        for key, (label, unit) in labels.items():
+            v = metrics.get(key)
+            shown = "N/A" if v is None else (f"{v:.1f}{unit}" if unit else f"{v:.2f}")
+            lines.append(f"| {label} | {shown} |")
+        return "\n".join(lines)
+
     # ---------- consistency ----------
 
     def consistency_report(self, summary: dict) -> str:

@@ -98,7 +98,8 @@ pytest -q     # 101 个测试，覆盖每个模块及 PRD 第六节的异常路�
 ### 学习曲线与 A/B 对比（Phase 2）
 
 ```bash
-# 学习曲线：同一任务连续 N 轮，观察分数趋势
+# 学习曲线：同一任务连续 N 轮，观察分数趋势（并输出 PRD 3.3 学习循环专项指标：
+#   improvement_rate / error_recurrence_rate / skill_creation_rate / skill_hit_rate）
 hermes-eval learn --task fb-002 --rounds 5 --db eval.db
 
 # A/B 对比：有/无某 Harness 层（skill/memory/orchestration）
