@@ -1,0 +1,84 @@
+# HermesEval
+
+针对 **Hermes Agent 五层 Harness**（Instructions / Constraints / Feedback / Memory / Orchestration）的自动化评测系统。
+
+> 设计与需求见 [`docs/PRD.md`](docs/PRD.md) 与 [`docs/TECH_DESIGN.md`](docs/TECH_DESIGN.md)。本仓库实现 PRD 的 **Phase 1 (MVP)**，采用 TDD 开发。
+
+## 能力概览
+
+| 模块 | 说明 |
+|------|------|
+| **Task Library** | YAML 定义评测任务，Pydantic 强校验，task_id 去重（`src/hermes_eval/task_library.py`） |
+| **Runner** | 通过 `HermesDriver` 协议驱动 Hermes（CLI 子进程 `SubprocessDriver`），健康检查 / 超时 / 空输出 / 先验 Session 全覆盖（`runner.py`） |
+| **Evaluator** | 规则评分 + LLM-as-Judge（客户端可注入）+ 状态验证 + 加权聚合（`evaluators/`） |
+| **Result Store** | SQLite + FTS5，运行记录 / 评分 / 学习曲线（`store.py`） |
+| **Report** | 单次运行报告 / Harness 层汇总 / 对比 / 学习曲线 / JSON 导出（`report.py`） |
+| **Pipeline + CLI** | 串联全链路并提供命令行（`pipeline.py`、`cli.py`） |
+
+## 安装
+
+```bash
+pip install -e .          # 安装 hermes-eval 及依赖（pydantic, PyYAML）
+pip install -e .[dev]     # 含 pytest
+```
+
+## 快速开始
+
+无需安装真实 Hermes，用内置 `DemoDriver` 跑通全链路：
+
+```bash
+# 列出/校验任务库
+hermes-eval list --tasks task_library
+
+# 运行单个任务（demo 模式）
+hermes-eval run --tasks task_library --task mem-001 --demo --db eval.db
+
+# 运行全部任务并生成 Harness 层汇总
+hermes-eval run --tasks task_library --demo --db eval.db
+hermes-eval report --db eval.db --tasks task_library
+```
+
+接入真实 Hermes：去掉 `--demo`，用 `--binary hermes` 指定可执行文件（`SubprocessDriver` 对应 PRD 方式 A + C）。
+
+## 任务定义示例
+
+```yaml
+task_id: mem-001
+name: 跨会话记忆保留测试
+harness_layer: memory          # instructions/constraints/feedback/memory/orchestration/all
+prompt: |
+  请帮我写一个爬虫。
+expected_outputs:
+  - { type: contains, value: httpx }
+  - { type: not_contains, value: requests }
+acceptance_criteria: ["使用 httpx 库", "不使用 requests 库"]
+eval_dimensions:
+  - { name: correctness, weight: 3.0, threshold: 7.0 }
+requires_prior_session: true
+prior_session_prompt: "记住：我喜欢用 httpx 而不是 requests。"
+```
+
+支持的规则类型：`contains` / `not_contains` / `regex_match` / `tool_called` /
+`tool_not_called` / `skill_created` / `memory_written` / `token_count_lt`。
+
+## 架构
+
+```
+Task Library ──► Runner ──► Evaluator ──► Result Store ──► Report Generator
+ (YAML)        (Driver协议)  (Rule/LLM/State)  (SQLite/FTS5)   (Markdown/JSON)
+```
+
+外部副作用（启动 Hermes、调用 Judge LLM、读取 `~/.hermes/`）全部隐藏在
+`Protocol` 接口后，可用内存 Fake 注入，因此核心逻辑离线全测。
+
+## 测试
+
+```bash
+pytest -q     # 78 个测试，覆盖每个模块及 PRD 第六节的异常路径
+```
+
+## 路线图
+
+- **Phase 1（已实现）**：Task Library / Runner / Rule+LLM Evaluator / SQLite Store / 报告，覆盖 L1·L2·L4。
+- **Phase 2**：`SubprocessDriver.snapshot_state` 接真实 `~/.hermes/`、学习曲线追踪、对比报告、L3。
+- **Phase 3**：L5 编排、e2e 任务、CI 定时运行、开源发布。

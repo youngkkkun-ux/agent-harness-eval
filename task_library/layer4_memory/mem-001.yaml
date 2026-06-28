@@ -1,0 +1,29 @@
+task_id: mem-001
+name: 跨会话记忆保留测试
+harness_layer: memory
+category: episodic
+difficulty: medium
+prompt: |
+  请帮我写一个爬虫。
+expected_outputs:
+  - type: contains
+    value: httpx
+  - type: not_contains
+    value: requests
+  - type: memory_written
+    value: httpx
+acceptance_criteria:
+  - "使用 httpx 库"
+  - "不使用 requests 库"
+  - "代码可运行"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+  - name: harness_utilization
+    weight: 2.0
+    threshold: 6.0
+requires_prior_session: true
+prior_session_prompt: |
+  记住：我喜欢用 httpx 而不是 requests。
+tags: [memory, episodic, preference]

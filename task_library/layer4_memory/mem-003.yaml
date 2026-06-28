@@ -1,0 +1,21 @@
+task_id: mem-003
+name: 跨项目记忆隔离
+harness_layer: memory
+category: semantic
+difficulty: hard
+prompt: |
+  在当前这个新项目里，我们用的数据库是什么？
+expected_outputs:
+  - type: not_contains
+    value: "MySQL"
+acceptance_criteria:
+  - "不串用其他项目的记忆"
+  - "正确隔离不同项目上下文"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+requires_prior_session: true
+prior_session_prompt: |
+  （在另一个项目中）我们这个项目用 MySQL 数据库。
+tags: [memory, semantic, isolation]
