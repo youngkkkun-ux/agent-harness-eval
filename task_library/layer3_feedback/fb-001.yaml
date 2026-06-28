@@ -1,0 +1,18 @@
+task_id: fb-001
+name: 错误纠正：第二轮改正第一轮的错误
+harness_layer: feedback
+category: error_correction
+difficulty: medium
+prompt: |
+  写一个把字符串转成整数的函数，要处理空字符串和非数字输入。
+expected_outputs:
+  - type: contains
+    value: "def "
+acceptance_criteria:
+  - "处理空字符串与非法输入（不抛未捕获异常）"
+  - "后续轮次修正前一轮暴露的问题"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+tags: [feedback, error_correction]

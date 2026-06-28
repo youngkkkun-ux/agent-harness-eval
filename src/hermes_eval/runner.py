@@ -154,5 +154,10 @@ class SubprocessDriver:
         return calls
 
     def snapshot_state(self, session_id: str) -> dict:
-        # Phase 2 wires this to ~/.hermes/ SQLite + skills/ + memory.md.
-        return {"available": False}
+        # Gray-box read of ~/.hermes/ state (PRD method C).
+        from pathlib import Path
+
+        from .hermes_state import HermesStateReader
+
+        home = self.hermes_home or (Path.home() / ".hermes")
+        return HermesStateReader(home).snapshot(session_id)

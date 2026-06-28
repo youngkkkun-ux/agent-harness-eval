@@ -94,8 +94,27 @@ Task Library ──► Runner ──► Evaluator ──► Result Store ──�
 pytest -q     # 78 个测试，覆盖每个模块及 PRD 第六节的异常路径
 ```
 
+### 学习曲线与 A/B 对比（Phase 2）
+
+```bash
+# 学习曲线：同一任务连续 N 轮，观察分数趋势
+hermes-eval learn --task fb-002 --rounds 5 --db eval.db
+
+# A/B 对比：有/无某 Harness 层（skill/memory/orchestration）
+hermes-eval compare --field skill_enabled --layer instructions --db eval.db
+```
+
+> demo 模式下 DemoDriver 不随配置/轮次变化，曲线和对比会持平 —— 真实区分需接入
+> Hermes 或参考 `tests/test_experiments.py` 中的脚本化驱动。
+
+### 真实 `~/.hermes/` 状态
+
+去掉 `--demo` 后，`SubprocessDriver` 会通过 `HermesStateReader` 读取 `~/.hermes/`
+的 `memory.md` / `user.md` / `skills/` / `sessions.db`，供 StateEvaluator 与
+`memory_written` / `skill_created` 等规则使用（PRD 方式 C 灰盒验证）。
+
 ## 路线图
 
 - **Phase 1（已实现）**：Task Library / Runner / Rule+LLM Evaluator / SQLite Store / 报告，覆盖 L1·L2·L4。
-- **Phase 2**：`SubprocessDriver.snapshot_state` 接真实 `~/.hermes/`、学习曲线追踪、对比报告、L3。
-- **Phase 3**：L5 编排、e2e 任务、CI 定时运行、开源发布。
+- **Phase 2（已实现）**：真实 `~/.hermes/` 状态读取（`HermesStateReader`）、Anthropic LLM-as-Judge、学习曲线追踪、A/B 对比报告、L3 反馈层任务、GitHub Actions CI。
+- **Phase 3**：L5 编排任务、e2e 任务、CI 定时运行、开源发布。

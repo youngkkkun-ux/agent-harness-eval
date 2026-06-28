@@ -1,0 +1,22 @@
+task_id: fb-002
+name: 学习曲线：连续多轮同类任务分数应上升
+harness_layer: feedback
+category: learning_curve
+difficulty: hard
+prompt: |
+  实现一个 LRU 缓存（get/put，容量上限），尽量高效。
+expected_outputs:
+  - type: contains
+    value: "class"
+acceptance_criteria:
+  - "get/put 均为 O(1)"
+  - "正确淘汰最久未使用项"
+  - "随着学习循环，后续轮次质量提升"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+  - name: harness_utilization
+    weight: 2.0
+    threshold: 6.0
+tags: [feedback, learning_curve]

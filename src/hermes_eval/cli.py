@@ -14,6 +14,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from .experiments import run_comparison, run_learning_curve
 from .models import RunConfig
 from .pipeline import EvaluationPipeline
 from .report import ReportGenerator
@@ -112,6 +113,50 @@ def cmd_report(args) -> int:
     return 0
 
 
+def cmd_learn(args) -> int:
+    try:
+        lib = _load_library(args.tasks)
+    except EmptyLibraryError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    task = lib.get(args.task)
+    if task is None:
+        print(f"未找到任务：{args.task}", file=sys.stderr)
+        return 2
+
+    store = ResultStore(args.db)
+    config = RunConfig(model=args.model)
+    config_id = store.save_config(args.config_name, config)
+    curve = run_learning_curve(_make_pipeline(args), store, task, config,
+                               rounds=args.rounds, config_id=config_id)
+    store.close()
+    print(ReportGenerator().learning_curve_report(task.task_id, curve))
+    return 0
+
+
+def cmd_compare(args) -> int:
+    try:
+        lib = _load_library(args.tasks)
+    except EmptyLibraryError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    tasks = lib.by_layer(args.layer) if args.layer else list(lib)
+    if not tasks:
+        print("没有匹配的任务。", file=sys.stderr)
+        return 2
+
+    store = ResultStore(args.db)
+    field = args.field
+    cfg_a = RunConfig(model=args.model, **{field: True})
+    cfg_b = RunConfig(model=args.model, **{field: False})
+    res_a, res_b = run_comparison(_make_pipeline(args), store, tasks,
+                                  cfg_a, f"{field}=on", cfg_b, f"{field}=off")
+    store.close()
+    print(ReportGenerator().comparison_report(f"{field}=on", res_a,
+                                              f"{field}=off", res_b))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="hermes-eval", description="HermesEval CLI")
     sub = p.add_subparsers(dest="command", required=True)
@@ -137,6 +182,31 @@ def build_parser() -> argparse.ArgumentParser:
     prep.add_argument("--tasks", default="task_library")
     prep.add_argument("--model", default="claude-opus-4-6")
     prep.set_defaults(func=cmd_report)
+
+    pln = sub.add_parser("learn", help="学习曲线：同一任务连续运行 N 轮")
+    pln.add_argument("--task", required=True, help="task_id（建议 fb 类）")
+    pln.add_argument("--rounds", type=int, default=5)
+    pln.add_argument("--tasks", default="task_library")
+    pln.add_argument("--db", default="hermes_eval.db")
+    pln.add_argument("--model", default="claude-opus-4-6")
+    pln.add_argument("--config-name", default="learning")
+    pln.add_argument("--binary", default="hermes")
+    pln.add_argument("--demo", action="store_true")
+    pln.add_argument("--judge-model", default=None)
+    pln.set_defaults(func=cmd_learn)
+
+    pc = sub.add_parser("compare", help="A/B 对比（如有/无某 Harness 层）")
+    pc.add_argument("--field", default="skill_enabled",
+                    choices=["skill_enabled", "memory_enabled", "orchestration_enabled"],
+                    help="对比的 RunConfig 开关")
+    pc.add_argument("--layer", default=None, help="只比较某 harness_layer 的任务")
+    pc.add_argument("--tasks", default="task_library")
+    pc.add_argument("--db", default="hermes_eval.db")
+    pc.add_argument("--model", default="claude-opus-4-6")
+    pc.add_argument("--binary", default="hermes")
+    pc.add_argument("--demo", action="store_true")
+    pc.add_argument("--judge-model", default=None)
+    pc.set_defaults(func=cmd_compare)
     return p
 
 

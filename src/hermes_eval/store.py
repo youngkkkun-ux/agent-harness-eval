@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS learning_curves (
     config_id   TEXT NOT NULL,
     run_number  INTEGER NOT NULL,
     run_id      TEXT NOT NULL,
-    score       REAL NOT NULL,
+    score       REAL,                   -- nullable: failed rounds are breakpoints (PRD 6.3)
     recorded_at TEXT NOT NULL
 );
 CREATE VIRTUAL TABLE IF NOT EXISTS runs_fts USING fts5(
@@ -172,7 +172,7 @@ class ResultStore:
     # ---------- learning curves ----------
 
     def record_learning_point(self, task_id: str, config_id: str, *,
-                              run_number: int, run_id: str, score: float):
+                              run_number: int, run_id: str, score: Optional[float]):
         self.conn.execute(
             "INSERT INTO learning_curves(task_id,config_id,run_number,run_id,score,"
             "recorded_at) VALUES(?,?,?,?,?,?)",

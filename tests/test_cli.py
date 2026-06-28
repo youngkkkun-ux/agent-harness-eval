@@ -40,3 +40,21 @@ def test_unknown_task_errors(capsys, tmp_path):
     rc = cli.main(["run", "--tasks", TASK_DIR, "--task", "does-not-exist",
                    "--demo", "--db", str(tmp_path / "x.db")])
     assert rc != 0
+
+
+def test_cmd_learn(capsys, tmp_path):
+    rc = cli.main(["learn", "--tasks", TASK_DIR, "--task", "mem-001",
+                   "--rounds", "3", "--demo", "--db", str(tmp_path / "l.db")])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "学习曲线" in out
+    assert "Run3" in out
+
+
+def test_cmd_compare(capsys, tmp_path):
+    rc = cli.main(["compare", "--tasks", TASK_DIR, "--layer", "instructions",
+                   "--field", "skill_enabled", "--demo", "--db", str(tmp_path / "c.db")])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "对比" in out
+    assert "skill_enabled=on" in out
