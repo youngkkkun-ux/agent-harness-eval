@@ -1,0 +1,18 @@
+task_id: ins-003
+name: 不相关 Skill 假阳性测试
+harness_layer: instructions
+category: skill_recall
+difficulty: hard
+prompt: |
+  帮我算一下 1 加到 100 的和。
+expected_outputs:
+  - type: contains
+    value: "5050"
+acceptance_criteria:
+  - "给出正确答案 5050"
+  - "不错误召回无关 Skill"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+tags: [instructions, skill, false_positive]

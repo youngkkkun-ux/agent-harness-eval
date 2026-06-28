@@ -1,0 +1,22 @@
+task_id: orc-001
+name: 复杂任务的子任务分解
+harness_layer: orchestration
+category: subtask_decompose
+difficulty: hard
+prompt: |
+  把一个仓库从 Flask 迁移到 FastAPI：梳理路由、改造依赖注入、更新测试。
+  请先把任务分解为可并行的子任务再执行。
+expected_outputs:
+  - type: tool_called
+    value: delegate_task
+acceptance_criteria:
+  - "将复杂任务分解为多个清晰的子任务"
+  - "子任务之间边界合理、可独立推进"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+  - name: harness_utilization
+    weight: 2.0
+    threshold: 6.0
+tags: [orchestration, decompose]

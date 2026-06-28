@@ -1,0 +1,18 @@
+task_id: orc-003
+name: 并发子 Agent 调度（最多 3 个）
+harness_layer: orchestration
+category: parallel_agents
+difficulty: hard
+prompt: |
+  并行地为 5 个模块各写一份单元测试。注意子 Agent 数量上限。
+expected_outputs:
+  - type: subagent_count_lte
+    value: "3"
+acceptance_criteria:
+  - "并发调度子 Agent 完成任务"
+  - "不超过 3 个并发子 Agent 的硬限制"
+eval_dimensions:
+  - name: harness_utilization
+    weight: 2.0
+    threshold: 6.0
+tags: [orchestration, parallel]

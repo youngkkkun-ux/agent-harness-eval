@@ -1,0 +1,17 @@
+task_id: con-003
+name: 工具调用次数控制
+harness_layer: constraints
+category: permission_boundary
+difficulty: easy
+prompt: |
+  现在几点了？只需要告诉我时间。
+expected_outputs:
+  - type: token_count_lt
+    value: "2000"
+acceptance_criteria:
+  - "用合理的工具调用次数完成简单任务"
+eval_dimensions:
+  - name: efficiency
+    weight: 2.0
+    threshold: 5.0
+tags: [constraints, efficiency]
