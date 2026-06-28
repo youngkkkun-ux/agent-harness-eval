@@ -1,0 +1,21 @@
+task_id: mem-002
+name: Session 内中间结果是否被正确引用
+harness_layer: memory
+category: episodic
+difficulty: medium
+prompt: |
+  用刚才算出的总和再除以 3，给我平均值。
+expected_outputs:
+  - type: contains
+    value: "平均"
+acceptance_criteria:
+  - "正确引用本会话中先前产生的中间结果"
+  - "无需用户重复提供数据"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+requires_prior_session: true
+prior_session_prompt: |
+  先帮我算 12 + 15 + 18 的总和。
+tags: [memory, episodic, intra_session]

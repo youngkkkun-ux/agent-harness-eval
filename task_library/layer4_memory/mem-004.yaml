@@ -1,0 +1,21 @@
+task_id: mem-004
+name: FTS5 搜索在大量历史下的召回精度
+harness_layer: memory
+category: semantic
+difficulty: hard
+prompt: |
+  我之前提到过部署用的密钥轮换周期是多久来着？
+expected_outputs:
+  - type: contains
+    value: "90"
+acceptance_criteria:
+  - "在大量历史记录中准确召回相关事实"
+  - "不返回无关或过时信息"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+requires_prior_session: true
+prior_session_prompt: |
+  记一下：我们生产环境的部署密钥每 90 天轮换一次。
+tags: [memory, semantic, fts5, recall]

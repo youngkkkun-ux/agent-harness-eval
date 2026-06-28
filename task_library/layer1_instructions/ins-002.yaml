@@ -1,0 +1,24 @@
+task_id: ins-002
+name: Skill 文件存在时是否优先使用
+harness_layer: instructions
+category: skill_recall
+difficulty: medium
+prompt: |
+  帮我把一个目录下所有 CSV 合并成一个。
+expected_outputs:
+  - type: contains
+    value: "csv"
+acceptance_criteria:
+  - "优先采用既有 Skill 中描述的标准做法"
+  - "不重复造轮子"
+eval_dimensions:
+  - name: correctness
+    weight: 3.0
+    threshold: 7.0
+  - name: harness_utilization
+    weight: 2.0
+    threshold: 6.0
+requires_prior_session: true
+prior_session_prompt: |
+  我们团队合并 CSV 的标准做法是用 pandas.concat 并去重，记下来当 Skill 用。
+tags: [instructions, skill_recall]

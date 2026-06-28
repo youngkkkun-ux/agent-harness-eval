@@ -4,7 +4,7 @@
 
 针对 **Hermes Agent 五层 Harness**（Instructions / Constraints / Feedback / Memory / Orchestration）的自动化评测系统。
 
-> 设计与需求见 [`docs/PRD.md`](docs/PRD.md) 与 [`docs/TECH_DESIGN.md`](docs/TECH_DESIGN.md)。本仓库实现 PRD 的 **Phase 1 (MVP)**，采用 TDD 开发。
+> 设计与需求见 [`docs/PRD.md`](docs/PRD.md) 与 [`docs/TECH_DESIGN.md`](docs/TECH_DESIGN.md)。本仓库实现 PRD 的 **Phase 1–3**，采用 TDD 开发。
 
 ## 能力概览
 
@@ -76,7 +76,8 @@ prior_session_prompt: "记住：我喜欢用 httpx 而不是 requests。"
 ```
 
 支持的规则类型：`contains` / `not_contains` / `regex_match` / `tool_called` /
-`tool_not_called` / `skill_created` / `memory_written` / `token_count_lt`。
+`tool_not_called` / `skill_created` / `memory_written` / `token_count_lt` /
+`subagent_count_lte`。
 
 ## 架构
 
@@ -91,7 +92,7 @@ Task Library ──► Runner ──► Evaluator ──► Result Store ──�
 ## 测试
 
 ```bash
-pytest -q     # 78 个测试，覆盖每个模块及 PRD 第六节的异常路径
+pytest -q     # 101 个测试，覆盖每个模块及 PRD 第六节的异常路径
 ```
 
 ### 学习曲线与 A/B 对比（Phase 2）
@@ -150,7 +151,7 @@ hermes-eval run \
 - **Phase 2（已实现）**：真实 `~/.hermes/` 状态读取（`HermesStateReader`）、Anthropic LLM-as-Judge、学习曲线追踪、A/B 对比报告、L3 反馈层任务、GitHub Actions CI。
 - **Phase 3（已实现）**：L5 编排任务（含 `subagent_count_lte` 子 Agent 上限检查）、e2e 任务、定时评测工作流（`.github/workflows/scheduled-eval.yml`）、开源发布（LICENSE + 示例报告）。
 
-任务库现覆盖全部五层 + e2e，共 14 个任务。
+任务库现覆盖全部五层 + e2e，共 20 个任务（与 PRD 5.1.3 一致）。
 
 ## License
 
