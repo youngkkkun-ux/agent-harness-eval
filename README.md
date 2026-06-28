@@ -40,6 +40,21 @@ hermes-eval report --db eval.db --tasks task_library
 
 接入真实 Hermes：去掉 `--demo`，用 `--binary hermes` 指定可执行文件（`SubprocessDriver` 对应 PRD 方式 A + C）。
 
+### 完整示例（含好/坏混合场景）
+
+`examples/demo_eval.py` 用 ScriptedDriver 模拟被测 Hermes 的真实行为差异
+（部分任务做对、部分做错），跑完整评测管线并生成报告：
+
+```bash
+PYTHONPATH=src python3 examples/demo_eval.py
+```
+
+产物 [`docs/SAMPLE_REPORT.md`](docs/SAMPLE_REPORT.md) 展示系统的区分能力：
+`con-003` 因 token 超预算被效率约束判负、`mem-001` 因无视跨会话偏好（用了
+`requests`）被记忆层判负，其余任务通过。评分由确定性的 RuleEvaluator +
+StateEvaluator 给出（可复现）；correctness 等主观维度在生产环境接入
+claude-haiku-4-5 作为 LLM-as-Judge。
+
 ## 任务定义示例
 
 ```yaml
