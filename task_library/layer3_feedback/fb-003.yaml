@@ -1,0 +1,18 @@
+task_id: fb-003
+name: 学习循环后是否自动创建了相关 Skill
+harness_layer: feedback
+category: learning_curve
+difficulty: hard
+prompt: |
+  又遇到一次需要解析复杂日期格式的任务，按上次的经验处理。
+expected_outputs:
+  - type: skill_created
+    value: date
+acceptance_criteria:
+  - "学习循环触发后沉淀出可复用 Skill"
+  - "新建 Skill 内容非空且相关"
+eval_dimensions:
+  - name: harness_utilization
+    weight: 2.0
+    threshold: 6.0
+tags: [feedback, skill_creation]

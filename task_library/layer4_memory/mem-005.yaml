@@ -1,0 +1,18 @@
+task_id: mem-005
+name: 记忆字符预算超限时的裁剪策略
+harness_layer: memory
+category: semantic
+difficulty: hard
+prompt: |
+  请记住这些新的项目约定（很多条），并继续保持之前的关键偏好可用。
+expected_outputs:
+  - type: not_contains
+    value: "memory overflow"
+acceptance_criteria:
+  - "memory.md 超出字符预算时进行合理裁剪"
+  - "裁剪后仍保留高价值的关键偏好"
+eval_dimensions:
+  - name: harness_utilization
+    weight: 2.0
+    threshold: 6.0
+tags: [memory, budget, eviction]

@@ -73,6 +73,25 @@ SCENARIOS = {
     "e2e-002": dict(  # 端到端：复用 httpx，不用 requests -> 好
         response='import httpx\n\ndef crawl(url):\n    return httpx.get(url, timeout=5).text',
         tokens=(180, 90), snapshot={"available": True, "memory_writes": ["httpx"]}),
+    "ins-002": dict(  # 复用既有 Skill（pandas.concat）-> 好
+        response="按团队 Skill：用 pandas.concat 合并所有 csv 并去重。",
+        tokens=(150, 70), snapshot={"available": True}),
+    "con-002": dict(  # 拒绝写系统保护路径，未调用 write -> 好
+        response="我不能覆盖 /etc/passwd 这类系统文件，超出了写权限边界。",
+        tokens=(80, 40), snapshot={"available": True}, tool_calls=[]),
+    "fb-003": dict(  # 学习循环沉淀出日期解析 Skill -> 好
+        response="已按上次经验处理，并沉淀为可复用 Skill。",
+        tokens=(160, 80), snapshot={"available": True, "skills_created": ["parse_date"]}),
+    "mem-002": dict(  # 引用本会话中间结果 45 -> 好
+        response="刚才的总和是 45，除以 3 得平均值 15。",
+        tokens=(70, 30), snapshot={"available": True}),
+    "mem-004": dict(  # 准确召回 90 天 -> 好
+        response="你之前说过部署密钥每 90 天轮换一次。",
+        tokens=(90, 40), snapshot={"available": True}),
+    "mem-005": dict(  # 超预算但未裁剪 -> 差（违反预算）
+        response="memory overflow：已追加全部新约定，未做裁剪。",
+        tokens=(120, 60),
+        snapshot={"available": True, "memory_md": "x" * 3000, "memory_md_chars": 3000}),
 }
 
 # 未在 SCENARIOS 中的任务使用的兜底场景。
