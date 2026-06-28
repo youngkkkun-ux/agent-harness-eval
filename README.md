@@ -1,5 +1,7 @@
 # HermesEval
 
+[![CI](https://github.com/youngkkkun-ux/agent-harness-eval/actions/workflows/ci.yml/badge.svg)](https://github.com/youngkkkun-ux/agent-harness-eval/actions/workflows/ci.yml)
+
 针对 **Hermes Agent 五层 Harness**（Instructions / Constraints / Feedback / Memory / Orchestration）的自动化评测系统。
 
 > 设计与需求见 [`docs/PRD.md`](docs/PRD.md) 与 [`docs/TECH_DESIGN.md`](docs/TECH_DESIGN.md)。本仓库实现 PRD 的 **Phase 1 (MVP)**，采用 TDD 开发。
