@@ -51,6 +51,15 @@ def test_cmd_learn(capsys, tmp_path):
     assert "Run3" in out
 
 
+def test_cmd_consistency(capsys, tmp_path):
+    rc = cli.main(["consistency", "--tasks", TASK_DIR, "--task", "mem-001",
+                   "--repeats", "3", "--demo", "--db", str(tmp_path / "co.db")])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "一致性" in out
+    assert "mem-001" in out
+
+
 def test_cmd_compare(capsys, tmp_path):
     rc = cli.main(["compare", "--tasks", TASK_DIR, "--layer", "instructions",
                    "--field", "skill_enabled", "--demo", "--db", str(tmp_path / "c.db")])

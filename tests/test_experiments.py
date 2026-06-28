@@ -1,7 +1,7 @@
 """Tests for learning-curve and A/B comparison orchestration (PRD 5.5, 3.3)."""
 import pytest
 
-from hermes_eval.experiments import run_comparison, run_learning_curve
+from hermes_eval.experiments import run_comparison, run_consistency, run_learning_curve
 from hermes_eval.models import EvalDimension, ExpectedOutput, RunConfig, Task
 from hermes_eval.pipeline import EvaluationPipeline
 from hermes_eval.runner import DriverResult, Runner
@@ -84,6 +84,39 @@ def test_learning_curve_records_breakpoint_on_error(store):
     curve = run_learning_curve(pipeline, store, _task(), cfg, rounds=3, config_id=cid)
     assert curve[1]["score"] is None  # PRD 6.3: failed round -> null breakpoint
     assert curve[0]["score"] == 10.0
+
+
+def test_consistency_stable_driver_scores_high(store):
+    # ImprovingDriver fails round 1 then stable -> some spread; use a fully stable one
+    class StableDriver(SkillSensitiveDriver):
+        def run(self, prompt, config, session_id):
+            return DriverResult(response="uses httpx", input_tokens=10, output_tokens=5)
+
+    pipeline = EvaluationPipeline(runner=Runner(StableDriver()), judge=None)
+    cfg = RunConfig(model="m")
+    cid = store.save_config("c", cfg)
+    summary = run_consistency(pipeline, store, _task(), cfg, repeats=4, config_id=cid)
+    assert summary["n"] == 4
+    assert summary["scores"] == [10.0, 10.0, 10.0, 10.0]
+    assert summary["consistency"] == 10.0
+
+
+def test_consistency_excludes_errored_runs(store):
+    class FlakyDriver(ImprovingDriver):
+        def run(self, prompt, config, session_id):
+            self.n += 1
+            if self.n == 2:
+                raise TimeoutError("boom")
+            return DriverResult(response="uses httpx", input_tokens=10, output_tokens=5)
+
+    pipeline = EvaluationPipeline(runner=Runner(FlakyDriver()), judge=None)
+    cfg = RunConfig(model="m")
+    cid = store.save_config("c", cfg)
+    summary = run_consistency(pipeline, store, _task(), cfg, repeats=3, config_id=cid)
+    # 3 runs, 1 errored -> 2 valid scores counted
+    assert summary["n"] == 2
+    assert summary["errored"] == 1
+    assert summary["consistency"] == 10.0  # the two valid runs both pass
 
 
 def test_comparison_runs_both_configs(store):

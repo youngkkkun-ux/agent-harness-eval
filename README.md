@@ -103,6 +103,9 @@ hermes-eval learn --task fb-002 --rounds 5 --db eval.db
 
 # A/B 对比：有/无某 Harness 层（skill/memory/orchestration）
 hermes-eval compare --field skill_enabled --layer instructions --db eval.db
+
+# 一致性（PRD 3.2 方差）：同一任务跑 N 次，看分数稳定性
+hermes-eval consistency --task mem-001 --repeats 5 --db eval.db
 ```
 
 > demo 模式下 DemoDriver 不随配置/轮次变化，曲线和对比会持平 —— 真实区分需接入
