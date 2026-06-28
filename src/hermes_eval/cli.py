@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 from .experiments import run_comparison, run_consistency, run_learning_curve
+from .metrics import learning_loop_metrics
 from .models import RunConfig
 from .pipeline import EvaluationPipeline
 from .report import ReportGenerator
@@ -131,8 +132,14 @@ def cmd_learn(args) -> int:
     config_id = store.save_config(args.config_name, config)
     curve = run_learning_curve(_make_pipeline(args), store, task, config,
                                rounds=args.rounds, config_id=config_id)
+    # PRD 3.3 learning-loop metrics, derived from the stored runs/results.
+    records = [store.get_run(p["run_id"]) for p in curve]
+    results = [store.get_result(p["run_id"]) for p in curve]
+    loop = learning_loop_metrics(records, results)
     store.close()
-    print(ReportGenerator().learning_curve_report(task.task_id, curve))
+    gen = ReportGenerator()
+    print(gen.learning_curve_report(task.task_id, curve))
+    print("\n" + gen.learning_loop_report(loop))
     return 0
 
 

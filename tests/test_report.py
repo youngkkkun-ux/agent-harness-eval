@@ -107,6 +107,22 @@ def test_consistency_report_handles_no_valid_runs():
     assert "无有效" in md or "N/A" in md
 
 
+def test_learning_loop_report():
+    m = {"improvement_rate": 59.6, "error_recurrence_rate": 0.0,
+         "skill_creation_rate": 0.4, "skill_hit_rate": 1.0}
+    md = ReportGenerator().learning_loop_report(m)
+    assert "学习循环" in md
+    assert "59.6" in md
+    assert "skill_hit_rate" in md or "Skill 召回" in md
+
+
+def test_learning_loop_report_handles_none():
+    m = {"improvement_rate": None, "error_recurrence_rate": None,
+         "skill_creation_rate": None, "skill_hit_rate": None}
+    md = ReportGenerator().learning_loop_report(m)
+    assert "N/A" in md
+
+
 def test_json_export_roundtrip():
     payload = ReportGenerator().json_export([_result()])
     assert payload[0]["task_id"] == "mem-001"
